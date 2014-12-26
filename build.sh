@@ -20,10 +20,20 @@ fi
 pushd $NGINX_DOWNLOAD_DIR
 
 ./configure \
+    --with-debug \
     --without-http_rewrite_module \
     --add-module=/vagrant/src
 make
 sudo make install
+
+popd
+
+pushd /vagrant/provision/
+
+sudo cp nginx /etc/init.d/
+sudo chmod +x /etc/init.d/nginx
+
+sudo cp nginx.conf /usr/local/nginx/conf/nginx.conf
 
 sudo service nginx restart
 

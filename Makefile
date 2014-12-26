@@ -1,4 +1,4 @@
-.PHONY: clean up install
+.PHONY: clean up acceptance
 
 clean:
 	@rm -r output

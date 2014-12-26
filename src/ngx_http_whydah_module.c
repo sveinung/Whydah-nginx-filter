@@ -6,6 +6,8 @@ static char* ngx_http_whydah(ngx_conf_t* cf, ngx_command_t* cmd, void* conf);
 static char* ngx_http_whydah_roles(ngx_conf_t* cf, ngx_command_t* cmd, void* conf);
 static void* ngx_http_whydah_create_loc_conf(ngx_conf_t* cf);
 static char* ngx_http_whydah_merge_loc_conf(ngx_conf_t* cf, void* parent, void* child);
+static ngx_int_t ngx_http_whydah_filter_init(ngx_conf_t* cf);
+static ngx_int_t ngx_http_whydah_header_filter(ngx_http_request_t* r);
 
 typedef struct {
     ngx_flag_t enable;
@@ -31,7 +33,7 @@ static ngx_command_t  ngx_http_whydah_commands[] = {
 
 static ngx_http_module_t ngx_http_whydah_module_ctx = {
     NULL,                          /* preconfiguration */
-    NULL,                          /* postconfiguration */
+    ngx_http_whydah_filter_init,   /* postconfiguration */
 
     NULL,                          /* create main configuration */
     NULL,                          /* init main configuration */
@@ -57,6 +59,8 @@ ngx_module_t ngx_http_whydah_module = {
     NULL,                            /* exit master */
     NGX_MODULE_V1_PADDING
 };
+
+static ngx_http_output_header_filter_pt  ngx_http_next_header_filter;
 
 static char* ngx_http_whydah(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 {
@@ -98,4 +102,20 @@ static void* ngx_http_whydah_create_loc_conf(ngx_conf_t* cf)
 static char* ngx_http_whydah_merge_loc_conf(ngx_conf_t* cf, void* parent, void* child)
 {
     return NGX_CONF_OK;
+}
+
+static ngx_int_t ngx_http_whydah_filter_init(ngx_conf_t* cf)
+{
+    ngx_http_next_header_filter = ngx_http_top_header_filter;
+    ngx_http_top_header_filter = ngx_http_whydah_header_filter;
+
+    return NGX_OK;
+}
+
+static ngx_int_t ngx_http_whydah_header_filter(ngx_http_request_t* r)
+{
+    ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "whydah filtering");
+    //ngx_http_core_loc_conf_t *clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
+
+    return ngx_http_next_header_filter(r);
 }

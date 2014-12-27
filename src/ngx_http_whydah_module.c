@@ -86,6 +86,8 @@ static void* ngx_http_whydah_create_loc_conf(ngx_conf_t* cf)
         return NULL;
     }
 
+    conf->enable = NGX_CONF_UNSET;
+
     return conf;
 }
 

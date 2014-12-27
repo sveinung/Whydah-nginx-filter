@@ -2,7 +2,6 @@
 #include <ngx_core.h>
 #include <ngx_http.h>
 
-static char* ngx_http_whydah(ngx_conf_t* cf, ngx_command_t* cmd, void* conf);
 static char* ngx_http_whydah_roles(ngx_conf_t* cf, ngx_command_t* cmd, void* conf);
 static void* ngx_http_whydah_create_loc_conf(ngx_conf_t* cf);
 static char* ngx_http_whydah_merge_loc_conf(ngx_conf_t* cf, void* parent, void* child);
@@ -15,10 +14,10 @@ typedef struct {
 
 static ngx_command_t  ngx_http_whydah_commands[] = {
     { ngx_string("whydah"),
-      NGX_HTTP_LOC_CONF | NGX_CONF_FLAG,
-      ngx_http_whydah,
+      NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_FLAG,
+      ngx_conf_set_flag_slot,
       NGX_HTTP_LOC_CONF_OFFSET,
-      0,
+      offsetof(ngx_http_whydah_loc_conf_t, enable),
       NULL },
 
     { ngx_string("whydah_roles"),
@@ -61,15 +60,6 @@ ngx_module_t ngx_http_whydah_module = {
 };
 
 static ngx_http_output_header_filter_pt  ngx_http_next_header_filter;
-
-static char* ngx_http_whydah(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
-{
-//    ngx_http_whydah_loc_conf_t* passthrough_loc_conf = conf;
-
-    ngx_conf_log_error(NGX_LOG_EMERG, cf, 0, "configuring whydah");
-
-    return NGX_CONF_OK;
-}
 
 static char* ngx_http_whydah_roles(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 {

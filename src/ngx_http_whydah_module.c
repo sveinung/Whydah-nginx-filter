@@ -93,6 +93,11 @@ static void* ngx_http_whydah_create_loc_conf(ngx_conf_t* cf)
 
 static char* ngx_http_whydah_merge_loc_conf(ngx_conf_t* cf, void* parent, void* child)
 {
+    ngx_http_whydah_loc_conf_t* prev = parent;
+    ngx_http_whydah_loc_conf_t* conf = child;
+
+    ngx_conf_merge_value(conf->enable, prev->enable, 0);
+
     return NGX_CONF_OK;
 }
 

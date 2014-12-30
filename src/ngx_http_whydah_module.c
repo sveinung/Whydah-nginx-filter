@@ -131,7 +131,15 @@ static ngx_int_t ngx_http_whydah_header_filter(ngx_http_request_t* r)
     ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "whydah filtering");
 
     ngx_http_whydah_loc_conf_t* whydah_conf = ngx_http_get_module_loc_conf(r, ngx_http_whydah_module);
+
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "whydah filtering: %d", whydah_conf->enable);
+
+    ngx_uint_t i;
+    whydah_role* role = whydah_conf->roles->elts;
+    for (i = 0; i < whydah_conf->roles->nelts; i++)
+    {
+        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "role %s", role[i].value.data);
+    }
 
     return ngx_http_next_header_filter(r);
 }

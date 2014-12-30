@@ -9,7 +9,12 @@ static ngx_int_t ngx_http_whydah_filter_init(ngx_conf_t* cf);
 static ngx_int_t ngx_http_whydah_header_filter(ngx_http_request_t* r);
 
 typedef struct {
+    ngx_str_t value;
+} whydah_role;
+
+typedef struct {
     ngx_flag_t enable;
+    ngx_array_t* roles;  // whydah_role-s
 } ngx_http_whydah_loc_conf_t;
 
 static ngx_command_t  ngx_http_whydah_commands[] = {
@@ -63,7 +68,7 @@ static ngx_http_output_header_filter_pt  ngx_http_next_header_filter;
 
 static char* ngx_http_whydah_roles(ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
 {
-//    ngx_http_whydah_loc_conf_t* passthrough_loc_conf = conf;
+    ngx_http_whydah_loc_conf_t* whydah_conf = conf;
     ngx_conf_log_error(NGX_LOG_EMERG, cf, 0, "configuring whydah_roles");
 
     ngx_uint_t i;
@@ -71,7 +76,12 @@ static char* ngx_http_whydah_roles(ngx_conf_t* cf, ngx_command_t* cmd, void* con
 
     for (i = 1; i < cf->args->nelts; i++)
     {
-        ngx_conf_log_error(NGX_LOG_EMERG, cf, 0, "role \"%V\"", &value[i]);
+        whydah_role* new_role = ngx_array_push(whydah_conf->roles);
+        if (new_role == NULL) {
+            return NGX_CONF_ERROR;
+        }
+        new_role->value.len = value[i].len;
+        new_role->value.data = value[i].data;
     }
 
     return NGX_CONF_OK;
@@ -82,11 +92,18 @@ static void* ngx_http_whydah_create_loc_conf(ngx_conf_t* cf)
     ngx_http_whydah_loc_conf_t* conf;
 
     conf = ngx_pcalloc(cf->pool, sizeof(ngx_http_whydah_loc_conf_t));
-    if (conf == NULL) {
+    if (conf == NULL)
+    {
         return NULL;
     }
 
     conf->enable = NGX_CONF_UNSET;
+
+    conf->roles = ngx_array_create(cf->pool, 4, sizeof(whydah_role));
+    if (conf->roles == NULL)
+    {
+        return NULL;
+    }
 
     return conf;
 }

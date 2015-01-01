@@ -7,6 +7,7 @@ static void* ngx_http_whydah_create_loc_conf(ngx_conf_t* cf);
 static char* ngx_http_whydah_merge_loc_conf(ngx_conf_t* cf, void* parent, void* child);
 static ngx_int_t ngx_http_whydah_filter_init(ngx_conf_t* cf);
 static ngx_int_t ngx_http_whydah_header_filter(ngx_http_request_t* r);
+static ngx_int_t redirect_to(ngx_http_request_t* r, ngx_str_t url);
 
 typedef struct {
     ngx_str_t value;
@@ -143,21 +144,30 @@ static ngx_int_t ngx_http_whydah_header_filter(ngx_http_request_t* r)
 
     if (whydah_conf->enable)
     {
-        ngx_str_t uri = ngx_string("http://www.aftenposten.no");
-
-        ngx_http_clear_location(r);
-
-        r->headers_out.location = ngx_list_push(&r->headers_out.headers);
-        if (r->headers_out.location == NULL) {
+        ngx_str_t url = ngx_string("http://www.aftenposten.no");
+        if (redirect_to(r, url) != NGX_OK)
+        {
             return NGX_ERROR;
         }
-
-        r->headers_out.location->hash = 1;
-        ngx_str_set(&r->headers_out.location->key, "Location");
-        r->headers_out.location->value.data = uri.data;
-        r->headers_out.location->value.len = uri.len;
-        r->headers_out.status = NGX_HTTP_TEMPORARY_REDIRECT;
     }
 
     return ngx_http_next_header_filter(r);
+}
+
+static ngx_int_t redirect_to(ngx_http_request_t* r, ngx_str_t url)
+{
+    ngx_http_clear_location(r);
+
+    r->headers_out.location = ngx_list_push(&r->headers_out.headers);
+    if (r->headers_out.location == NULL) {
+        return NGX_ERROR;
+    }
+
+    r->headers_out.location->hash = 1;
+    ngx_str_set(&r->headers_out.location->key, "Location");
+    r->headers_out.location->value.data = url.data;
+    r->headers_out.location->value.len = url.len;
+    r->headers_out.status = NGX_HTTP_TEMPORARY_REDIRECT;
+
+    return NGX_OK;
 }

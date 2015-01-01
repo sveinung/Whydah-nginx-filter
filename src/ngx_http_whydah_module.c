@@ -141,5 +141,23 @@ static ngx_int_t ngx_http_whydah_header_filter(ngx_http_request_t* r)
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "role %s", role[i].value.data);
     }
 
+    if (whydah_conf->enable)
+    {
+        ngx_str_t uri = ngx_string("http://www.aftenposten.no");
+
+        ngx_http_clear_location(r);
+
+        r->headers_out.location = ngx_list_push(&r->headers_out.headers);
+        if (r->headers_out.location == NULL) {
+            return NGX_ERROR;
+        }
+
+        r->headers_out.location->hash = 1;
+        ngx_str_set(&r->headers_out.location->key, "Location");
+        r->headers_out.location->value.data = uri.data;
+        r->headers_out.location->value.len = uri.len;
+        r->headers_out.status = NGX_HTTP_TEMPORARY_REDIRECT;
+    }
+
     return ngx_http_next_header_filter(r);
 }

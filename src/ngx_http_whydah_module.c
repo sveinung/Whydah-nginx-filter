@@ -15,6 +15,7 @@ typedef struct {
 
 typedef struct {
     ngx_flag_t enable;
+    ngx_str_t sso_login_webapp_url;
     ngx_array_t* roles;  // whydah_role-s
 } ngx_http_whydah_loc_conf_t;
 
@@ -24,6 +25,13 @@ static ngx_command_t  ngx_http_whydah_commands[] = {
       ngx_conf_set_flag_slot,
       NGX_HTTP_LOC_CONF_OFFSET,
       offsetof(ngx_http_whydah_loc_conf_t, enable),
+      NULL },
+
+    { ngx_string("whydah_sso_login_webapp_url"),
+      NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_FLAG,
+      ngx_conf_set_str_slot,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      offsetof(ngx_http_whydah_loc_conf_t, sso_login_webapp_url),
       NULL },
 
     { ngx_string("whydah_roles"),
@@ -144,8 +152,7 @@ static ngx_int_t ngx_http_whydah_header_filter(ngx_http_request_t* r)
 
     if (whydah_conf->enable)
     {
-        ngx_str_t url = ngx_string("http://www.aftenposten.no");
-        if (redirect_to(r, url) != NGX_OK)
+        if (redirect_to(r, whydah_conf->sso_login_webapp_url) != NGX_OK)
         {
             return NGX_ERROR;
         }

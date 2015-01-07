@@ -172,9 +172,25 @@ static ngx_int_t redirect_to_login(ngx_http_request_t* r, ngx_str_t login_page_u
 
     r->headers_out.location->hash = 1;
     ngx_str_set(&r->headers_out.location->key, "Location");
-    r->headers_out.location->value.data = login_page_url.data;
-    r->headers_out.location->value.len = login_page_url.len;
+
+    ngx_str_t full_url;
+    full_url.data = ngx_pnalloc(r->pool, 128);
+    if (full_url.data == NULL) {
+        return NGX_ERROR;
+    }
+    full_url.len = ngx_snprintf(
+        full_url.data,
+        128,
+        "%s?redirectURI=%s%Z",
+        login_page_url.data,
+        r->headers_in.host->value.data) - full_url.data;
+
+    r->headers_out.location->value.data = full_url.data;
+    r->headers_out.location->value.len = full_url.len;
+
     r->headers_out.status = NGX_HTTP_TEMPORARY_REDIRECT;
+
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "redirecting to %s", full_url.data);
 
     return NGX_OK;
 }

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export IAM_MODE=TEST
+export IAM_MODE=TEST_LOCALHOST
 
 A=UserAdminService
 V=LATEST

@@ -30,4 +30,12 @@ sudo cp start-service.sh $DIR/sso-login-webapp
 sudo cp ssologinwebapp.TEST.properties $DIR/sso-login-webapp
 popd
 
+mkdir -p $DIR/user-admin-webapp
+chown vagrant:vagrant $DIR/user-admin-webapp
+pushd user-admin-webapp
+sudo cp update-service.sh $DIR/user-admin-webapp
+sudo cp start-service.sh $DIR/user-admin-webapp
+sudo cp useradminwebapp.TEST.properties $DIR/user-admin-webapp
+popd
+
 popd

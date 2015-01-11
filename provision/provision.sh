@@ -22,4 +22,12 @@ sudo cp start-security-token-service.sh $DIR/securitytokenservice
 sudo cp securitytokenservice.TEST.properties $DIR/securitytokenservice
 popd
 
+mkdir -p $DIR/sso-login-webapp
+chown vagrant:vagrant $DIR/sso-login-webapp
+pushd sso-login-webapp
+sudo cp update-service.sh $DIR/sso-login-webapp
+sudo cp start-service.sh $DIR/sso-login-webapp
+sudo cp ssologinwebapp.TEST.properties $DIR/sso-login-webapp
+popd
+
 popd

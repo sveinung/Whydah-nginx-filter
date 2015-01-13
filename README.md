@@ -6,7 +6,7 @@ Provides authentication in Nginx by integrating with [Whydah](https://wiki.altra
 Useful when you need Whydah authentication in front of third-party applications.
 
 Sample config:
-```
+```nginx
 http {
     server {
         listen       80;

@@ -7,6 +7,8 @@ pushd /vagrant/provision
 sudo apt-get update
 sudo apt-get install -y make curl openjdk-7-jre-headless
 
+sudo cp hosts /etc/hosts
+
 mkdir -p $DIR/useradminservice
 pushd useradminservice
 sudo cp start-user-admin-service.sh $DIR/useradminservice

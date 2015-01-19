@@ -7,7 +7,10 @@ static void* ngx_http_whydah_create_loc_conf(ngx_conf_t* cf);
 static char* ngx_http_whydah_merge_loc_conf(ngx_conf_t* cf, void* parent, void* child);
 static ngx_int_t ngx_http_whydah_filter_init(ngx_conf_t* cf);
 static ngx_int_t ngx_http_whydah_header_filter(ngx_http_request_t* r);
+static void get_user_token_from_cookie(ngx_http_request_t* r);
 static ngx_int_t redirect_to_login(ngx_http_request_t* r, ngx_str_t login_page_url);
+
+static ngx_str_t user_token_cookie_name = ngx_string("whydahusertoken_sso");
 
 typedef struct {
     ngx_str_t value;
@@ -150,6 +153,8 @@ static ngx_int_t ngx_http_whydah_header_filter(ngx_http_request_t* r)
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "role %s", role[i].value.data);
     }
 
+    get_user_token_from_cookie(r);
+
     if (whydah_conf->enable)
     {
         if (redirect_to_login(r, whydah_conf->sso_login_webapp_url) != NGX_OK)
@@ -159,6 +164,26 @@ static ngx_int_t ngx_http_whydah_header_filter(ngx_http_request_t* r)
     }
 
     return ngx_http_next_header_filter(r);
+}
+
+static void get_user_token_from_cookie(ngx_http_request_t* r)
+{
+    ngx_int_t rc;
+    ngx_str_t value;
+
+    rc = ngx_http_parse_multi_header_lines(
+        &r->headers_in.cookies,
+        &user_token_cookie_name,
+        &value);
+
+    if (rc == NGX_DECLINED)
+    {
+        ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "whydahusertoken_sso not found");
+    }
+    else
+    {
+        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "whydahusertoken_sso %s", value.data);
+    }
 }
 
 static ngx_int_t redirect_to_login(ngx_http_request_t* r, ngx_str_t login_page_url)

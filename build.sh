@@ -22,6 +22,7 @@ pushd $NGINX_DOWNLOAD_DIR
 ./configure \
     --with-debug \
     --without-http_rewrite_module \
+    --with-http_ssl_module \
     --add-module=/vagrant/src
 make
 sudo make install

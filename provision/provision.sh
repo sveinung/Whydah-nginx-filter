@@ -9,6 +9,9 @@ sudo apt-get install -y make curl openjdk-7-jre-headless
 
 sudo cp hosts /etc/hosts
 
+sudo mkdir -p /usr/local/nginx/ssl/
+sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /usr/local/nginx/ssl/nginx.key -out /usr/local/nginx/ssl/nginx.crt -config openssl.config -batch
+
 mkdir -p $DIR/useradminservice
 pushd useradminservice
 sudo cp start-user-admin-service.sh $DIR/useradminservice

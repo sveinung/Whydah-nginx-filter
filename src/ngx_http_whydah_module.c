@@ -2,14 +2,6 @@
 #include <ngx_core.h>
 #include <ngx_http.h>
 
-static char* ngx_http_whydah_roles(ngx_conf_t* cf, ngx_command_t* cmd, void* conf);
-static void* ngx_http_whydah_create_loc_conf(ngx_conf_t* cf);
-static char* ngx_http_whydah_merge_loc_conf(ngx_conf_t* cf, void* parent, void* child);
-static ngx_int_t ngx_http_whydah_filter_init(ngx_conf_t* cf);
-static ngx_int_t ngx_http_whydah_header_filter(ngx_http_request_t* r);
-static ngx_int_t get_user_token_index_from_cookie(ngx_http_request_t* r);
-static ngx_int_t redirect_to_login(ngx_http_request_t* r, ngx_str_t login_page_url);
-
 static ngx_str_t user_token_cookie_name = ngx_string("whydahusertoken_sso");
 
 typedef struct {
@@ -20,7 +12,19 @@ typedef struct {
     ngx_flag_t enable;
     ngx_str_t sso_login_webapp_url;
     ngx_array_t* roles;  // whydah_role-s
+    ngx_str_t token_service;
+    ngx_str_t application_id;
+    ngx_str_t application_secret;
 } ngx_http_whydah_loc_conf_t;
+
+static char* ngx_http_whydah_roles(ngx_conf_t* cf, ngx_command_t* cmd, void* conf);
+static void* ngx_http_whydah_create_loc_conf(ngx_conf_t* cf);
+static char* ngx_http_whydah_merge_loc_conf(ngx_conf_t* cf, void* parent, void* child);
+static ngx_int_t ngx_http_whydah_filter_init(ngx_conf_t* cf);
+static ngx_int_t ngx_http_whydah_header_filter(ngx_http_request_t* r);
+static ngx_int_t authenticate_application(ngx_http_request_t* r, ngx_http_whydah_loc_conf_t* whydah_conf);
+static ngx_int_t get_user_token_index_from_cookie(ngx_http_request_t* r);
+static ngx_int_t redirect_to_login(ngx_http_request_t* r, ngx_str_t login_page_url);
 
 static ngx_command_t  ngx_http_whydah_commands[] = {
     { ngx_string("whydah"),
@@ -42,6 +46,27 @@ static ngx_command_t  ngx_http_whydah_commands[] = {
       ngx_http_whydah_roles,
       NGX_HTTP_LOC_CONF_OFFSET,
       0,
+      NULL },
+
+    { ngx_string("whydah_token_service"),
+      NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_FLAG,
+      ngx_conf_set_str_slot,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      offsetof(ngx_http_whydah_loc_conf_t, token_service),
+      NULL },
+
+    { ngx_string("whydah_application_id"),
+      NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_FLAG,
+      ngx_conf_set_str_slot,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      offsetof(ngx_http_whydah_loc_conf_t, application_id),
+      NULL },
+
+    { ngx_string("whydah_application_secret"),
+      NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_FLAG,
+      ngx_conf_set_str_slot,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      offsetof(ngx_http_whydah_loc_conf_t, application_secret),
       NULL },
 
       ngx_null_command
@@ -150,6 +175,8 @@ static ngx_int_t ngx_http_whydah_header_filter(ngx_http_request_t* r)
         return ngx_http_next_header_filter(r);
     }
 
+    authenticate_application(r, whydah_conf);
+
     ngx_uint_t i;
     whydah_role* role = whydah_conf->roles->elts;
     for (i = 0; i < whydah_conf->roles->nelts; i++)
@@ -168,6 +195,15 @@ static ngx_int_t ngx_http_whydah_header_filter(ngx_http_request_t* r)
     }
 
     return ngx_http_next_header_filter(r);
+}
+
+static ngx_int_t authenticate_application(ngx_http_request_t* r, ngx_http_whydah_loc_conf_t* whydah_conf)
+{
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "token_service %s", whydah_conf->token_service.data);
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "application_id %s", whydah_conf->application_id.data);
+    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "application_secret %s", whydah_conf->application_secret.data);
+
+    return NGX_OK;
 }
 
 static ngx_int_t get_user_token_index_from_cookie(ngx_http_request_t* r)
